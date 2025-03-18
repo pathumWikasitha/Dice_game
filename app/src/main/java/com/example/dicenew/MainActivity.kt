@@ -1,10 +1,16 @@
 package com.example.dicenew
 
+import android.annotation.SuppressLint
+import android.graphics.ImageDecoder
+import android.graphics.drawable.Animatable2
+import android.graphics.drawable.AnimatedImageDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.OptIn
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,11 +45,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.RawResourceDataSource
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.dicenew.ui.theme.DiceNewTheme
+import java.io.InputStream
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,19 +137,9 @@ fun HomeScreen(onPlayClick: () -> Unit) {
     }
 }
 
-@OptIn(UnstableApi::class)
 @Composable
 fun GameScreen() {
-    var showVideo by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val videoUri = RawResourceDataSource.buildRawResourceUri(R.raw.dice_rolling)
-
-    val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            prepare()
-        }
-    }
+    var showDiesThrow by remember { mutableStateOf(false) }
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -158,6 +153,52 @@ fun GameScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(100.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.dice_1),
+                    contentDescription = "Dice 1",
+                    modifier = Modifier.size(50.dp)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.dice_2),
+                    contentDescription = "Dice 2",
+                    modifier = Modifier.size(50.dp)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.dice_3),
+                    contentDescription = "Dice 3",
+                    modifier = Modifier.size(50.dp)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.dice_4),
+                    contentDescription = "Dice 4",
+                    modifier = Modifier.size(50.dp)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.dice_5),
+                    contentDescription = "Dice 5",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+            if (showDiesThrow) {
+                GifImageOnce(
+                    gifResId = R.drawable.dice_roll,
+                    modifier = Modifier.size(120.dp),
+                )
+            }
+
+        }
+
+
         Spacer(modifier = Modifier.weight(1f))
         Column {
 
@@ -202,9 +243,7 @@ fun GameScreen() {
         ) {
             Button(
                 onClick = {
-                    showVideo = true
-                    exoPlayer.playWhenReady = true
-                    exoPlayer.play()
+                    showDiesThrow = true
                 },
                 modifier = Modifier
                     .width(140.dp)
@@ -232,7 +271,6 @@ fun GameScreen() {
                 )
             }
         }
-
     }
 }
 
@@ -261,33 +299,36 @@ fun AboutDialogBox(onDismiss: () -> Unit) {
         }
     )
 }
-//
-//@Composable
-//fun ExoplayerExample() {
-//
-//    val context = LocalContext.current
-//
-//    val mediaItem = MediaBrowser.MediaItem.Builder()
-//        .setUri(R.raw.)
-//        .build()
-//    val exoPlayer = remember(context, mediaItem) {
-//        ExoPlayer.Builder(context)
-//            .build()
-//            .also { exoPlayer ->
-//                exoPlayer.setMediaItem(mediaItem)
-//                exoPlayer.prepare()
-//                exoPlayer.playWhenReady = false
-//                exoPlayer.repeatMode = REPEAT_MODE_OFF
-//            }
-//    }
-//
-//    DisposableEffect(
-//        AndroidView(factory = {
-//            StyledPlayerView(context).apply {
-//                player = exoPlayer
-//            }
-//        })
-//    ) {
-//        onDispose { exoPlayer.release() }
-//    }
-//}
+
+@SuppressLint("ResourceType")
+@Composable
+fun GifImageOnce(@DrawableRes gifResId: Int, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val imageView = remember { ImageView(context) }
+    var isPlayed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(gifResId) {
+        val inputStream: InputStream = context.resources.openRawResource(gifResId)
+        val source = ImageDecoder.createSource(inputStream.readBytes())
+        val drawable: Drawable = ImageDecoder.decodeDrawable(source)
+
+        if (drawable is AnimatedImageDrawable) {
+            drawable.repeatCount = 1  // Play GIF once
+            drawable.start()
+            imageView.setImageDrawable(drawable)
+
+            // Stop after duration
+            drawable.registerAnimationCallback(object : Animatable2.AnimationCallback() {
+                override fun onAnimationEnd(drawable: Drawable?) {
+                    isPlayed = true
+                }
+            })
+        }
+    }
+
+    if (!isPlayed) {
+        AndroidView(factory = { imageView }, modifier = modifier)
+    }
+}
+
+

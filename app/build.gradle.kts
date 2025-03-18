@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.dicenew"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.runner)
     implementation(libs.androidx.runner)
+    implementation(libs.androidx.media3.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,8 +59,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    val media3_version = "1.5.1"
 
-    // For media playback using ExoPlayer
-    implementation("androidx.media3:media3-exoplayer:$media3_version")
 }
