@@ -74,16 +74,16 @@ fun MyApp() {
                 .padding(innerPadding)
         ) {
             if (showHomeScreen) {
-                HomeScreen(onPlayClick = { showHomeScreen = false })
+                HomeScreen(onNewGameClick = { showHomeScreen = false })
             } else {
-                GameScreen()
+                GameScreen(onHomeClick = { showHomeScreen = true })
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(onPlayClick: () -> Unit) {
+fun HomeScreen(onNewGameClick: () -> Unit) {
     var showAboutDialog by remember { mutableStateOf(false) }
 
     Image(
@@ -102,14 +102,14 @@ fun HomeScreen(onPlayClick: () -> Unit) {
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { onPlayClick() },
+            onClick = { onNewGameClick() },
             modifier = Modifier
-                .width(140.dp)
-                .height(50.dp),
+                .width(170.dp)
+                .height(55.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
         ) {
             Text(
-                "Play",
+                "New Game",
                 color = Color.White,
                 style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold)
             )
@@ -120,8 +120,8 @@ fun HomeScreen(onPlayClick: () -> Unit) {
         Button(
             onClick = { showAboutDialog = true },
             modifier = Modifier
-                .width(140.dp)
-                .height(50.dp),
+                .width(150.dp)
+                .height(55.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta)
         ) {
             Text(
@@ -140,13 +140,15 @@ fun HomeScreen(onPlayClick: () -> Unit) {
 }
 
 @Composable
-fun GameScreen() {
+fun GameScreen(onHomeClick: () -> Unit) {
     var showDiesThrow by remember { mutableStateOf(false) }
     var userDiceResults by remember { mutableStateOf(List(5) { 1 }) }
     var computerDiceResults by remember { mutableStateOf(List(5) { 1 }) }
     var userScore by remember { mutableIntStateOf(0) }
     var computerScore by remember { mutableIntStateOf(0) }
+    var rollCount by remember { mutableIntStateOf(0) }
     var isScoreButtonEnabled by remember { mutableStateOf(false) }
+    var showQuitDialog by remember { mutableStateOf(false) }
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -171,7 +173,7 @@ fun GameScreen() {
         ) {
             Column {
                 Button(
-                    onClick = {},
+                    onClick = { showQuitDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 ) {
 
@@ -282,6 +284,17 @@ fun GameScreen() {
                         showDiesThrow = false
                         userDiceResults = List(5) { (1..6).random() }
                         isScoreButtonEnabled = true
+
+                        if (rollCount >= 3) {  // If the player reaches 3 rolls, score automatically
+                            userScore += userDiceResults.sum()
+                            isScoreButtonEnabled = false
+                            rollCount = 0 // Reset roll count
+
+                            // Computer turn
+                            computerDiceResults = computerTurn()
+                            computerScore += computerDiceResults.sum()
+                        }
+
                     }
                 )
             }
@@ -330,40 +343,86 @@ fun GameScreen() {
         ) {
             Button(
                 onClick = {
-                    showDiesThrow = true
+                    if (rollCount < 3) {  // Prevent extra rolls
+                        showDiesThrow = true
+                        rollCount++
+                    }
                 },
+                enabled = rollCount < 3 && !showDiesThrow, // Disable after 3 rolls
                 modifier = Modifier
-                    .width(120.dp)
-                    .height(50.dp),
+                    .width(140.dp)
+                    .height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
             ) {
                 Text(
-                    text = if (showDiesThrow) "Rolling..." else "Throw",
+                    text = when {
+                        showDiesThrow -> "Rolling.."
+                        rollCount == 0 -> "Throw"
+                        rollCount == 1 || rollCount == 2 -> "ReRoll"
+                        else -> "Throw"
+                    },
                     color = Color.White,
                     style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
                 )
             }
             Button(
                 onClick = {
-                    userScore += userDiceResults.sum()
-                    isScoreButtonEnabled = false
-                    computerDiceResults = List(5) { (1..6).random() }
-                    computerScore += computerDiceResults.sum()
+                    if (rollCount > 0) { // Ensure the player has thrown at least once
+                        userScore += userDiceResults.sum()
+                        isScoreButtonEnabled = false
+                        computerDiceResults = computerTurn()
+                        computerScore += computerDiceResults.sum()
+                        rollCount = 0 // Reset for next round
+                    }
                 },
                 modifier = Modifier
-                    .width(120.dp)
-                    .height(50.dp),
+                    .width(140.dp)
+                    .height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
-                enabled = isScoreButtonEnabled
+                enabled = isScoreButtonEnabled && !showDiesThrow
             ) {
                 Text(
-                    "Score",
+                    if (!showDiesThrow && rollCount > 0) "Score" else "",
                     color = Color.White,
                     style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
                 )
             }
         }
+        if (showQuitDialog) {
+            QuitDialogBox(
+                onQuit = {
+                    showQuitDialog = false
+                    onHomeClick() // Go to home screen
+                },
+                onContinue = {
+                    showQuitDialog = false // Close the dialog
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun QuitDialogBox(onQuit: () -> Unit, onContinue: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onContinue() },
+        confirmButton = {
+            TextButton(onClick = onQuit) {
+                Text("Quit")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onContinue) {
+                Text("Continue")
+            }
+        },
+        title = { Text("Are you sure?", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
+        text = {
+            Text("Do you want to quit the game?", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        }
+    )
+
+
 }
 
 
@@ -438,6 +497,15 @@ fun getDiceDrawable(value: Int): Int {
         4 -> R.drawable.dice_4
         5 -> R.drawable.dice_5
         else -> R.drawable.dice_6
+    }
+}
+
+fun computerTurn(): List<Int> {
+    val initialRoll = List(5) { (1..6).random() }
+    return if (initialRoll.count { it >= 4 } >= 2) {  // Keep high values
+        initialRoll
+    } else {
+        List(5) { (1..6).random() } // Re-roll all dice
     }
 }
 
