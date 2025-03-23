@@ -9,10 +9,13 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,17 +59,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            var showHomeScreen by remember { mutableStateOf(true) }
+
             DiceNewTheme {
-                MyApp()
+                MyApp(
+                    showHomeScreen = showHomeScreen,
+                    onNewGameClick = { showHomeScreen = false }) {
+                    showHomeScreen = true  // Navigating back to home screen
+                }
             }
         }
     }
 }
 
-@Composable
-fun MyApp() {
-    var showHomeScreen by remember { mutableStateOf(true) }
 
+@Composable
+fun MyApp(showHomeScreen: Boolean, onNewGameClick: () -> Unit, onBackToHome: () -> Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
             modifier = Modifier
@@ -74,13 +82,14 @@ fun MyApp() {
                 .padding(innerPadding)
         ) {
             if (showHomeScreen) {
-                HomeScreen(onNewGameClick = { showHomeScreen = false })
+                HomeScreen(onNewGameClick)
             } else {
-                GameScreen(onHomeClick = { showHomeScreen = true })
+                GameScreen(onHomeClick = onBackToHome)
             }
         }
     }
 }
+
 
 @Composable
 fun HomeScreen(onNewGameClick: () -> Unit) {
@@ -149,6 +158,10 @@ fun GameScreen(onHomeClick: () -> Unit) {
     var rollCount by remember { mutableIntStateOf(0) }
     var isScoreButtonEnabled by remember { mutableStateOf(false) }
     var showQuitDialog by remember { mutableStateOf(false) }
+    var selectedDice by remember { mutableStateOf(List(5) { false }) }
+    var gameOver by remember { mutableStateOf(false) }
+    var winner by remember { mutableStateOf("") }
+
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -184,7 +197,6 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     )
                 }
             }
-
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -238,6 +250,9 @@ fun GameScreen(onHomeClick: () -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
+        // COMPUTER DICE SECTION
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -251,6 +266,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -282,8 +298,11 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     modifier = Modifier.size(200.dp),
                     onGifEnd = {
                         showDiesThrow = false
-                        userDiceResults = List(5) { (1..6).random() }
+                        userDiceResults = userDiceResults.mapIndexed { index, oldValue ->
+                            if (selectedDice[index]) oldValue else (1..6).random()
+                        }
                         isScoreButtonEnabled = true
+                        selectedDice = List(5) { false } // remove selection border after reRoll
 
                         if (rollCount >= 3) {  // If the player reaches 3 rolls, score automatically
                             userScore += userDiceResults.sum()
@@ -299,7 +318,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
                 )
             }
         }
-
+        // USER DICE SECTION
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -315,12 +334,34 @@ fun GameScreen(onHomeClick: () -> Unit) {
                         .padding(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    userDiceResults.forEach { diceValue ->
-                        Image(
-                            painter = painterResource(id = getDiceDrawable(diceValue)),
-                            contentDescription = "Dice $diceValue",
-                            modifier = Modifier.size(50.dp)
-                        )
+                    userDiceResults.forEachIndexed { index, diceValue ->
+                        Box(
+                            modifier = Modifier
+                                .size(55.dp)
+                                .padding(4.dp)
+                                .clickable { // Allow dice select
+                                    if (rollCount > 0) {
+                                        selectedDice = selectedDice
+                                            .toMutableList()
+                                            .apply {
+                                                this[index] = !this[index] // Toggle selection
+                                            }
+                                    }
+                                }
+                                .border(
+                                    width = 3.dp,
+                                    color = if (selectedDice[index]) Color(0xFF00BFFF)
+                                    else Color.Transparent,
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = getDiceDrawable(diceValue)),
+                                contentDescription = "Dice $diceValue",
+                                modifier = Modifier.size(50.dp)
+                            )
+                        }
                     }
 
                 }
@@ -370,16 +411,30 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     if (rollCount > 0) { // Ensure the player has thrown at least once
                         userScore += userDiceResults.sum()
                         isScoreButtonEnabled = false
-                        computerDiceResults = computerTurn()
+                        selectedDice = List(5) { false } // remove selection border after score
+
+                        // Make the computer use all remaining rolls
+                        repeat(3 - rollCount) {
+                            computerDiceResults = computerTurn()
+                        }
+
                         computerScore += computerDiceResults.sum()
                         rollCount = 0 // Reset for next round
+
+                        if (computerScore < userScore && userScore >= 101) {
+                            gameOver = true
+                            winner = "You Win!"
+                        } else if (computerScore >= 101) {
+                            gameOver = true
+                            winner = "You Lose!"
+                        }
                     }
                 },
                 modifier = Modifier
                     .width(140.dp)
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
-                enabled = isScoreButtonEnabled && !showDiesThrow
+                enabled = isScoreButtonEnabled && !showDiesThrow && rollCount > 0
             ) {
                 Text(
                     if (!showDiesThrow && rollCount > 0) "Score" else "",
@@ -399,6 +454,36 @@ fun GameScreen(onHomeClick: () -> Unit) {
                 }
             )
         }
+
+        BackHandler {
+            showQuitDialog = true
+        }
+
+        if (gameOver) {
+            AlertDialog(
+                onDismissRequest = {}, // Prevent closing the dialog
+                confirmButton = {
+                    BackHandler {
+                        onHomeClick()
+                    }
+                },
+                title = {
+                    Text(
+                        text = winner,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (winner == "You Win!") Color.Green else Color.Red
+                    )
+                },
+                text = {
+                    Text(
+                        "Game Over! Press the Back button to return to the Home Screen.",
+                        fontSize = 18.sp
+                    )
+                }
+            )
+        }
+
     }
 }
 
@@ -501,11 +586,15 @@ fun getDiceDrawable(value: Int): Int {
 }
 
 fun computerTurn(): List<Int> {
-    val initialRoll = List(5) { (1..6).random() }
-    return if (initialRoll.count { it >= 4 } >= 2) {  // Keep high values
-        initialRoll
-    } else {
-        List(5) { (1..6).random() } // Re-roll all dice
-    }
-}
+    var computerDice = List(5) { (1..6).random() } // Initial roll
+    val maxRolls = (1..3).random() // Randomly decide number of rolls (1 to 3)
 
+    repeat(maxRolls - 1) { // If maxRolls = 1, no re-rolls happen
+        val keepDice = List(5) { (0..1).random() == 1 } // Randomly decide which dice to keep
+        computerDice = computerDice.mapIndexed { index, oldValue ->
+            if (keepDice[index]) oldValue else (1..6).random()
+        }
+    }
+
+    return computerDice.shuffled()
+}
