@@ -5,6 +5,7 @@ import android.graphics.ImageDecoder
 import android.graphics.drawable.Animatable2
 import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.activity.ComponentActivity
@@ -32,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -100,7 +102,7 @@ fun HomeScreen(onPlayClick: () -> Unit) {
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { onPlayClick() }, // Now updates showHomeScreen
+            onClick = { onPlayClick() },
             modifier = Modifier
                 .width(140.dp)
                 .height(50.dp),
@@ -140,6 +142,11 @@ fun HomeScreen(onPlayClick: () -> Unit) {
 @Composable
 fun GameScreen() {
     var showDiesThrow by remember { mutableStateOf(false) }
+    var userDiceResults by remember { mutableStateOf(List(5) { 1 }) }
+    var computerDiceResults by remember { mutableStateOf(List(5) { 1 }) }
+    var userScore by remember { mutableIntStateOf(0) }
+    var computerScore by remember { mutableIntStateOf(0) }
+    var isScoreButtonEnabled by remember { mutableStateOf(false) }
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -147,132 +154,218 @@ fun GameScreen() {
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxSize()
     )
+
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(top = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Spacer(modifier = Modifier.height(100.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.dice_1),
-                    contentDescription = "Dice 1",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_2),
-                    contentDescription = "Dice 2",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_3),
-                    contentDescription = "Dice 3",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_4),
-                    contentDescription = "Dice 4",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_5),
-                    contentDescription = "Dice 5",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-            if (showDiesThrow) {
-                GifImageOnce(
-                    gifResId = R.drawable.dice_roll,
-                    modifier = Modifier.size(120.dp),
-                )
-            }
-
-        }
-
-
-        Spacer(modifier = Modifier.weight(1f))
-        Column {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.dice_1),
-                    contentDescription = "Dice 1",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_2),
-                    contentDescription = "Dice 2",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_3),
-                    contentDescription = "Dice 3",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_4),
-                    contentDescription = "Dice 4",
-                    modifier = Modifier.size(50.dp)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.dice_5),
-                    contentDescription = "Dice 5",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-
-        }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(35.dp)
+                .height(150.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column {
+                Button(
+                    onClick = {},
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                ) {
+
+                    Image(
+                        modifier = Modifier.size(50.dp),
+                        painter = painterResource(R.drawable.home),
+                        contentDescription = "Home Button"
+                    )
+                }
+            }
+
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(30.dp),
+                        painter = painterResource(R.drawable.user),
+                        contentDescription = "User Icon"
+                    )
+                    Spacer(modifier = Modifier.width(30.dp))
+                    Column(
+                        modifier = Modifier.width(50.dp)
+                    ) {
+                        Text(
+                            text = "$userScore",
+                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(30.dp),
+                        painter = painterResource(R.drawable.computer),
+                        contentDescription = "Computer Icon"
+                    )
+                    Spacer(modifier = Modifier.width(30.dp))
+                    Column(
+                        modifier = Modifier.width(50.dp)
+                    ) {
+                        Text(
+                            text = "$computerScore",
+                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                            color = Color.White
+                        )
+                    }
+
+                }
+
+            }
+
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "COMPUTER",
+                    fontSize = 25.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    computerDiceResults.forEach { diceValue ->
+                        Image(
+                            painter = painterResource(id = getDiceDrawable(diceValue)),
+                            contentDescription = "Dice $diceValue",
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // ANIMATION SECTION
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(180.dp)
+                .padding(bottom = 50.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (showDiesThrow) {
+                GifImageOnce(
+                    gifResId = R.drawable.dice_roll,
+                    modifier = Modifier.size(200.dp),
+                    onGifEnd = {
+                        showDiesThrow = false
+                        userDiceResults = List(5) { (1..6).random() }
+                        isScoreButtonEnabled = true
+                    }
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(bottom = 100.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    userDiceResults.forEach { diceValue ->
+                        Image(
+                            painter = painterResource(id = getDiceDrawable(diceValue)),
+                            contentDescription = "Dice $diceValue",
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+
+                }
+                Text(
+                    text = "YOU",
+                    fontSize = 25.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+
+        // BUTTON SECTION
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 50.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+
         ) {
             Button(
                 onClick = {
                     showDiesThrow = true
                 },
                 modifier = Modifier
-                    .width(140.dp)
+                    .width(120.dp)
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
             ) {
                 Text(
-                    "Throw",
+                    text = if (showDiesThrow) "Rolling..." else "Throw",
                     color = Color.White,
-                    style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium)
+                    style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
                 )
             }
-            Spacer(modifier = Modifier.padding(20.dp))
             Button(
-                onClick = { },
+                onClick = {
+                    userScore += userDiceResults.sum()
+                    isScoreButtonEnabled = false
+                    computerDiceResults = List(5) { (1..6).random() }
+                    computerScore += computerDiceResults.sum()
+                },
                 modifier = Modifier
-                    .width(140.dp)
+                    .width(120.dp)
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
+                enabled = isScoreButtonEnabled
             ) {
                 Text(
                     "Score",
                     color = Color.White,
-                    style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium)
+                    style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun AboutDialogBox(onDismiss: () -> Unit) {
@@ -302,33 +395,49 @@ fun AboutDialogBox(onDismiss: () -> Unit) {
 
 @SuppressLint("ResourceType")
 @Composable
-fun GifImageOnce(@DrawableRes gifResId: Int, modifier: Modifier = Modifier) {
+fun GifImageOnce(@DrawableRes gifResId: Int, modifier: Modifier = Modifier, onGifEnd: () -> Unit) {
     val context = LocalContext.current
     val imageView = remember { ImageView(context) }
-    var isPlayed by remember { mutableStateOf(false) }
 
     LaunchedEffect(gifResId) {
         val inputStream: InputStream = context.resources.openRawResource(gifResId)
         val source = ImageDecoder.createSource(inputStream.readBytes())
         val drawable: Drawable = ImageDecoder.decodeDrawable(source)
 
+        // Load and prepare the sound
+        val diceRollSound: MediaPlayer = MediaPlayer.create(context, R.raw.dice_rolling)
+
         if (drawable is AnimatedImageDrawable) {
-            drawable.repeatCount = 1  // Play GIF once
+            drawable.repeatCount = 0  // Play GIF once
+            diceRollSound.start()
             drawable.start()
             imageView.setImageDrawable(drawable)
 
-            // Stop after duration
+            // Handle animation end
             drawable.registerAnimationCallback(object : Animatable2.AnimationCallback() {
                 override fun onAnimationEnd(drawable: Drawable?) {
-                    isPlayed = true
+                    onGifEnd() // Call the callback when finished
                 }
             })
+
+            // Release sound resources after completion
+            diceRollSound.setOnCompletionListener {
+                it.release()
+            }
         }
     }
 
-    if (!isPlayed) {
-        AndroidView(factory = { imageView }, modifier = modifier)
-    }
+    AndroidView(factory = { imageView }, modifier = modifier)
 }
 
+fun getDiceDrawable(value: Int): Int {
+    return when (value) {
+        1 -> R.drawable.dice_1
+        2 -> R.drawable.dice_2
+        3 -> R.drawable.dice_3
+        4 -> R.drawable.dice_4
+        5 -> R.drawable.dice_5
+        else -> R.drawable.dice_6
+    }
+}
 
