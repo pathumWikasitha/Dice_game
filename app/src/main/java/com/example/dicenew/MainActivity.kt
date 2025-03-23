@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.dicenew.ui.theme.DiceNewTheme
-import java.io.InputStream
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,9 +63,9 @@ class MainActivity : ComponentActivity() {
             DiceNewTheme {
                 MyApp(
                     showHomeScreen = showHomeScreen,
-                    onNewGameClick = { showHomeScreen = false }) {
-                    showHomeScreen = true  // Navigating back to home screen
-                }
+                    onNewGameClick = { showHomeScreen = false },
+                    onBackToHome = { showHomeScreen = true }
+                )
             }
         }
     }
@@ -427,6 +426,9 @@ fun GameScreen(onHomeClick: () -> Unit) {
                         } else if (computerScore >= 101) {
                             gameOver = true
                             winner = "You Lose!"
+                        } else if (computerScore == userScore) {
+                            winner = "Tie! Keep Rolling..."
+                            gameOver = false
                         }
                     }
                 },
@@ -455,10 +457,6 @@ fun GameScreen(onHomeClick: () -> Unit) {
             )
         }
 
-        BackHandler {
-            showQuitDialog = true
-        }
-
         if (gameOver) {
             AlertDialog(
                 onDismissRequest = {}, // Prevent closing the dialog
@@ -482,6 +480,10 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     )
                 }
             )
+        } else {
+            BackHandler {
+                showQuitDialog = true
+            }
         }
 
     }
@@ -544,27 +546,23 @@ fun GifImageOnce(@DrawableRes gifResId: Int, modifier: Modifier = Modifier, onGi
     val imageView = remember { ImageView(context) }
 
     LaunchedEffect(gifResId) {
-        val inputStream: InputStream = context.resources.openRawResource(gifResId)
-        val source = ImageDecoder.createSource(inputStream.readBytes())
+        val source = ImageDecoder.createSource(context.resources, gifResId)
         val drawable: Drawable = ImageDecoder.decodeDrawable(source)
 
-        // Load and prepare the sound
         val diceRollSound: MediaPlayer = MediaPlayer.create(context, R.raw.dice_rolling)
 
         if (drawable is AnimatedImageDrawable) {
-            drawable.repeatCount = 0  // Play GIF once
+            drawable.repeatCount = 0
             diceRollSound.start()
             drawable.start()
             imageView.setImageDrawable(drawable)
 
-            // Handle animation end
             drawable.registerAnimationCallback(object : Animatable2.AnimationCallback() {
                 override fun onAnimationEnd(drawable: Drawable?) {
-                    onGifEnd() // Call the callback when finished
+                    onGifEnd()
                 }
             })
 
-            // Release sound resources after completion
             diceRollSound.setOnCompletionListener {
                 it.release()
             }
@@ -573,6 +571,7 @@ fun GifImageOnce(@DrawableRes gifResId: Int, modifier: Modifier = Modifier, onGi
 
     AndroidView(factory = { imageView }, modifier = modifier)
 }
+
 
 fun getDiceDrawable(value: Int): Int {
     return when (value) {
