@@ -376,7 +376,7 @@ fun GameScreen(
                             rollCount = 0 // Reset roll count
 
                             // Computer turn
-                            computerDiceResults = computerTurn()
+                            computerDiceResults = computerTurn(computerScore = computerScore, humanScore = userScore)
                             computerScore += computerDiceResults.sum()
                         }
 
@@ -477,7 +477,7 @@ fun GameScreen(
 
                         // Make the computer use all remaining rolls
                         repeat(3 - rollCount) {
-                            computerDiceResults = computerTurn()
+                            computerDiceResults = computerTurn(computerScore = computerScore, humanScore = userScore)
                         }
 
                         computerScore += computerDiceResults.sum()
@@ -650,16 +650,56 @@ fun getDiceDrawable(value: Int): Int {
     }
 }
 
-fun computerTurn(): List<Int> {
-    var computerDice = List(5) { (1..6).random() } // Initial roll
-    val maxRolls = (1..3).random() // Randomly decide number of rolls (1 to 3)
+/**
+ * Computer Player Strategy for Dice ReRolling
+ *
+ * Strategy Overview:
+ * - The computer can roll up to 3 times (2 reRolls maximum).
+ * - The computer cannot see the human player's dice, but it knows both players' scores.
+ * - The goal is to maximize the score while considering the current game state.
+ *
+ * Strategy Logic:
+ * 1. Always keep dice values of 5 or 6 (high-value rolls).
+ * 2. Always reRoll dice values of 1 or 2 (low-value rolls).
+ * 3. If the computer is behind in score, reRoll 3s and 4s to increase the chance of getting higher values.
+ * 4. If the computer is ahead, keep 3s and 4s for a safer play style.
+ *
+ * Justification:
+ * - Keeping high values ensures a strong score.
+ * - ReRolling low values improves the overall dice total.
+ * - Adapting the strategy based on the score difference provides a competitive edge.
+ *
+ * Advantages:
+ * - More optimized than random reRolling.
+ * - Dynamically adjusts based on the game state.
+ * - Ensures better decision-making without cheating (not seeing human dice).
+ *
+ * Disadvantages:
+ * - Does not account for the probability of specific dice outcomes.
+ * - In some cases, it may not maximize the best possible score.
+ */
 
-    repeat(maxRolls - 1) { // If maxRolls = 1, no re-rolls happen
-        val keepDice = List(5) { (0..1).random() == 1 } // Randomly decide which dice to keep
+fun computerTurn(computerScore: Int, humanScore: Int): List<Int> {
+    var computerDice = List(5) { (1..6).random() } // Initial roll
+    val scoreDifference = computerScore - humanScore
+    val maxRolls = 2 // The computer can reRoll up to 2 times
+
+    repeat(maxRolls) { // Allow up to 2 reRolls based on strategy
+        val reRollDice = computerDice.map { die ->
+            when {
+                die >= 5 -> false // Keep 5s and 6s
+                die <= 2 -> true  // Always reRoll 1s and 2s
+                scoreDifference < 0 && die == 3 -> true  // If losing, reRoll 3s
+                scoreDifference < 0 -> true  // If losing, reRoll 4s
+                else -> false // Otherwise, keep the dice
+            }
+        }
+
         computerDice = computerDice.mapIndexed { index, oldValue ->
-            if (keepDice[index]) oldValue else (1..6).random()
+            if (reRollDice[index]) (1..6).random() else oldValue
         }
     }
 
-    return computerDice.shuffled()
+    return computerDice
 }
+
