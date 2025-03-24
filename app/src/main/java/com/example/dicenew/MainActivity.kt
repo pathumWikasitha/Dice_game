@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,13 +64,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             var showHomeScreen by remember { mutableStateOf(true) }
-
             DiceNewTheme {
                 MyApp(
                     showHomeScreen = showHomeScreen,
                     onNewGameClick = { showHomeScreen = false },
-                    onBackToHome = { showHomeScreen = true }
-                )
+                    onBackToHome = { showHomeScreen = true })
             }
         }
     }
@@ -78,6 +77,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp(showHomeScreen: Boolean, onNewGameClick: () -> Unit, onBackToHome: () -> Unit) {
+    var humanWins by rememberSaveable { mutableIntStateOf(0) }
+    var computerWins by rememberSaveable { mutableIntStateOf(0) }
+
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
             modifier = Modifier
@@ -87,7 +89,16 @@ fun MyApp(showHomeScreen: Boolean, onNewGameClick: () -> Unit, onBackToHome: () 
             if (showHomeScreen) {
                 HomeScreen(onNewGameClick)
             } else {
-                GameScreen(onHomeClick = onBackToHome)
+                GameScreen(
+                    onHomeClick = onBackToHome,
+                    humanWins = humanWins,
+                    computerWins = computerWins,
+                    updateScores = { newHumanWins, newComputerWins ->
+                        humanWins = newHumanWins
+                        computerWins = newComputerWins
+                    }
+                )
+
             }
         }
     }
@@ -152,7 +163,11 @@ fun HomeScreen(onNewGameClick: () -> Unit) {
 }
 
 @Composable
-fun GameScreen(onHomeClick: () -> Unit) {
+fun GameScreen(
+    onHomeClick: () -> Unit, humanWins: Int,
+    computerWins: Int,
+    updateScores: (Int, Int) -> Unit
+) {
     var showDiesThrow by remember { mutableStateOf(false) }
     var userDiceResults by remember { mutableStateOf(List(5) { 1 }) }
     var computerDiceResults by remember { mutableStateOf(List(5) { 1 }) }
@@ -169,8 +184,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
     val openDialog = remember { mutableStateOf(true) }
 
     if (openDialog.value) {
-        AlertDialog(
-            onDismissRequest = { openDialog.value = false },
+        AlertDialog(onDismissRequest = { openDialog.value = false },
             title = { Text("Set Target Score") },
             text = {
                 Column {
@@ -189,16 +203,14 @@ fun GameScreen(onHomeClick: () -> Unit) {
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        targetScore = inputText.toIntOrNull() ?: 101  // Default to 101 if input is invalid
-                        openDialog.value = false
-                    }
-                ) {
+                Button(onClick = {
+                    targetScore =
+                        inputText.toIntOrNull() ?: 101  // Default to 101 if input is invalid
+                    openDialog.value = false
+                }) {
                     Text("OK")
                 }
-            }
-        )
+            })
     }
 
 
@@ -224,6 +236,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
             verticalAlignment = Alignment.Top,
         ) {
             Column {
+
                 Button(
                     onClick = { showQuitDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -239,9 +252,19 @@ fun GameScreen(onHomeClick: () -> Unit) {
 
             Column {
                 Column(
-                    modifier = Modifier.padding(end = 20.dp)
+                    modifier = Modifier.width(100.dp).padding(end = 20.dp)
                 ) {
-                    Text("Target Score: $targetScore", color = Color.White)
+                    Text("Target : $targetScore", color = Color.White, style = TextStyle(fontSize = 15.sp))
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Column(
+                    modifier = Modifier.padding(end = 20.dp),
+                ) {
+                    Text(
+                        text = "H:${humanWins} / C:${computerWins}",
+                        color = Color.White,
+                        style = TextStyle(fontSize = 15.sp)
+                    )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -250,8 +273,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Image(
-                        modifier = Modifier
-                            .size(30.dp),
+                        modifier = Modifier.size(28.dp),
                         painter = painterResource(R.drawable.user),
                         contentDescription = "User Icon"
                     )
@@ -274,8 +296,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Image(
-                        modifier = Modifier
-                            .size(30.dp),
+                        modifier = Modifier.size(28.dp),
                         painter = painterResource(R.drawable.computer),
                         contentDescription = "Computer Icon"
                     )
@@ -303,8 +324,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.TopEnd
+                .weight(1f), contentAlignment = Alignment.TopEnd
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -340,8 +360,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) {
             if (showDiesThrow) {
-                GifImageOnce(
-                    gifResId = R.drawable.dice_roll,
+                GifImageOnce(gifResId = R.drawable.dice_roll,
                     modifier = Modifier.size(200.dp),
                     onGifEnd = {
                         showDiesThrow = false
@@ -361,8 +380,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
                             computerScore += computerDiceResults.sum()
                         }
 
-                    }
-                )
+                    })
             }
         }
         // USER DICE SECTION
@@ -382,27 +400,24 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     userDiceResults.forEachIndexed { index, diceValue ->
-                        Box(
-                            modifier = Modifier
-                                .size(55.dp)
-                                .padding(4.dp)
-                                .clickable { // Allow dice select
-                                    if (rollCount > 0) {
-                                        selectedDice = selectedDice
-                                            .toMutableList()
-                                            .apply {
-                                                this[index] = !this[index] // Toggle selection
-                                            }
-                                    }
+                        Box(modifier = Modifier
+                            .size(55.dp)
+                            .padding(4.dp)
+                            .clickable { // Allow dice select
+                                if (rollCount > 0) {
+                                    selectedDice = selectedDice
+                                        .toMutableList()
+                                        .apply {
+                                            this[index] = !this[index] // Toggle selection
+                                        }
                                 }
-                                .border(
-                                    width = 3.dp,
-                                    color = if (selectedDice[index]) Color(0xFF00BFFF)
-                                    else Color.Transparent,
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
+                            }
+                            .border(
+                                width = 3.dp,
+                                color = if (selectedDice[index]) Color(0xFF00BFFF)
+                                else Color.Transparent,
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                            ), contentAlignment = Alignment.Center) {
                             Image(
                                 painter = painterResource(id = getDiceDrawable(diceValue)),
                                 contentDescription = "Dice $diceValue",
@@ -476,10 +491,12 @@ fun GameScreen(onHomeClick: () -> Unit) {
                             } else if (computerScore > userScore) {
                                 // Computer wins
                                 winner = "You Lose!"
+                                updateScores(humanWins, computerWins + 1) //update score of the computer
                                 gameOver = true
                             } else {
                                 // User wins
                                 winner = "You Win!"
+                                updateScores(humanWins + 1, computerWins) //update score of the user
                                 gameOver = true
                             }
                         } else {
@@ -502,40 +519,33 @@ fun GameScreen(onHomeClick: () -> Unit) {
             }
         }
         if (showQuitDialog) {
-            QuitDialogBox(
-                onQuit = {
-                    showQuitDialog = false
-                    onHomeClick() // Go to home screen
-                },
-                onContinue = {
-                    showQuitDialog = false // Close the dialog
-                }
-            )
+            QuitDialogBox(onQuit = {
+                showQuitDialog = false
+                onHomeClick() // Go to home screen
+            }, onContinue = {
+                showQuitDialog = false // Close the dialog
+            })
         }
 
         if (gameOver) {
-            AlertDialog(
-                onDismissRequest = {},
+            AlertDialog(onDismissRequest = {},
                 confirmButton = {
                     BackHandler {
                         onHomeClick()
                     }
-                },
-                title = {
+                }, title = {
                     Text(
                         text = winner,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (winner == "You Win!") Color.Green else Color.Red
                     )
-                },
-                text = {
+                }, text = {
                     Text(
                         "Game Over! Press the Back button to return to the Home Screen.",
                         fontSize = 18.sp
                     )
-                }
-            )
+                })
         } else {
             // Prevent re-roll for the computer during the tie
             if (computerScore != userScore || userScore < targetScore) {
@@ -549,10 +559,10 @@ fun GameScreen(onHomeClick: () -> Unit) {
     }
 }
 
+
 @Composable
 fun QuitDialogBox(onQuit: () -> Unit, onContinue: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = { onContinue() },
+    AlertDialog(onDismissRequest = { onContinue() },
         confirmButton = {
             TextButton(onClick = onQuit) {
                 Text("Quit")
@@ -566,8 +576,7 @@ fun QuitDialogBox(onQuit: () -> Unit, onContinue: () -> Unit) {
         title = { Text("Are you sure?", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
         text = {
             Text("Do you want to quit the game?", fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        }
-    )
+        })
 
 
 }
@@ -575,8 +584,7 @@ fun QuitDialogBox(onQuit: () -> Unit, onContinue: () -> Unit) {
 
 @Composable
 fun AboutDialogBox(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
+    AlertDialog(onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Ok")
@@ -589,14 +597,12 @@ fun AboutDialogBox(onDismiss: () -> Unit) {
                 Text("Student ID: w1953264", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "I confirm that I understand what plagiarism is and have read and understood " +
-                            "the section on Assessment Offences in the Essential Information for Students. " +
-                            "The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
-                    fontSize = 16.sp, fontWeight = FontWeight.Normal
+                    text = "I confirm that I understand what plagiarism is and have read and understood " + "the section on Assessment Offences in the Essential Information for Students. " + "The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
                 )
             }
-        }
-    )
+        })
 }
 
 @SuppressLint("ResourceType")
