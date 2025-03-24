@@ -27,12 +27,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -152,6 +155,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
     var showDiesThrow by remember { mutableStateOf(false) }
     var userDiceResults by remember { mutableStateOf(List(5) { 1 }) }
     var computerDiceResults by remember { mutableStateOf(List(5) { 1 }) }
+    var targetScore by remember { mutableIntStateOf(101) }
     var userScore by remember { mutableIntStateOf(0) }
     var computerScore by remember { mutableIntStateOf(0) }
     var rollCount by remember { mutableIntStateOf(0) }
@@ -160,7 +164,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
     var selectedDice by remember { mutableStateOf(List(5) { false }) }
     var gameOver by remember { mutableStateOf(false) }
     var winner by remember { mutableStateOf("") }
-
+    var inputText by remember { mutableStateOf(targetScore.toString()) }
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -201,24 +205,52 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Image(
-                        modifier = Modifier
-                            .size(30.dp),
-                        painter = painterResource(R.drawable.user),
-                        contentDescription = "User Icon"
-                    )
-                    Spacer(modifier = Modifier.width(30.dp))
-                    Column(
-                        modifier = Modifier.width(50.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            text = "$userScore",
-                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                            "Set Target Score:",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
+                        TextField(
+                            value = inputText,
+                            onValueChange = { newValue ->
+                                inputText = newValue
+                                targetScore =
+                                    newValue.toIntOrNull()
+                                        ?: 101 // Default to 101 if input is invalid
+                            },
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                            modifier = Modifier
+                                .width(80.dp)
+                                .height(20.dp)
+                                .padding(bottom = 10.dp)
+                        )
                     }
+                    Row {
+                        Image(
+                            modifier = Modifier
+                                .size(30.dp),
+                            painter = painterResource(R.drawable.user),
+                            contentDescription = "User Icon"
+                        )
+                        Spacer(modifier = Modifier.width(30.dp))
+                        Column(
+                            modifier = Modifier.width(50.dp)
+                        ) {
+                            Text(
+                                text = "$userScore",
+                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                        }
 
+                    }
                 }
+
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
@@ -383,12 +415,12 @@ fun GameScreen(onHomeClick: () -> Unit) {
         ) {
             Button(
                 onClick = {
-                    if (rollCount < 3) {  // Prevent extra rolls
+                    if (rollCount < 3 && !gameOver && !showDiesThrow) {  // Prevent extra rolls and allow throw if both tied
                         showDiesThrow = true
                         rollCount++
                     }
                 },
-                enabled = rollCount < 3 && !showDiesThrow, // Disable after 3 rolls
+                enabled = rollCount < 3 && !showDiesThrow && !gameOver, // Disable after 3 rolls
                 modifier = Modifier
                     .width(140.dp)
                     .height(55.dp),
@@ -420,14 +452,22 @@ fun GameScreen(onHomeClick: () -> Unit) {
                         computerScore += computerDiceResults.sum()
                         rollCount = 0 // Reset for next round
 
-                        if (computerScore < userScore && userScore >= 101) {
-                            gameOver = true
-                            winner = "You Win!"
-                        } else if (computerScore >= 101) {
-                            gameOver = true
-                            winner = "You Lose!"
-                        } else if (computerScore == userScore) {
-                            winner = "Tie! Keep Rolling..."
+                        if (computerScore >= targetScore || userScore >= targetScore) {
+                            if (computerScore == userScore) {
+                                // Tie condition: Both players have scored the same and targetScore or more
+                                winner = "Tie! Keep Rolling..."
+                                gameOver = false // Allow user to continue rolling
+                            } else if (computerScore > userScore) {
+                                // Computer wins
+                                winner = "You Lose!"
+                                gameOver = true
+                            } else {
+                                // User wins
+                                winner = "You Win!"
+                                gameOver = true
+                            }
+                        } else {
+                            winner = ""
                             gameOver = false
                         }
                     }
@@ -459,7 +499,7 @@ fun GameScreen(onHomeClick: () -> Unit) {
 
         if (gameOver) {
             AlertDialog(
-                onDismissRequest = {}, // Prevent closing the dialog
+                onDismissRequest = {},
                 confirmButton = {
                     BackHandler {
                         onHomeClick()
@@ -481,10 +521,14 @@ fun GameScreen(onHomeClick: () -> Unit) {
                 }
             )
         } else {
-            BackHandler {
-                showQuitDialog = true
+            // Prevent re-roll for the computer during the tie
+            if (computerScore != userScore || userScore < targetScore) {
+                BackHandler {
+                    showQuitDialog = true
+                }
             }
         }
+
 
     }
 }
