@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.isDigitsOnly
 import com.example.dicenew.ui.theme.DiceNewTheme
 
 class MainActivity : ComponentActivity() {
@@ -165,6 +166,41 @@ fun GameScreen(onHomeClick: () -> Unit) {
     var gameOver by remember { mutableStateOf(false) }
     var winner by remember { mutableStateOf("") }
     var inputText by remember { mutableStateOf(targetScore.toString()) }
+    val openDialog = remember { mutableStateOf(true) }
+
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = { openDialog.value = false },
+            title = { Text("Set Target Score") },
+            text = {
+                Column {
+                    Text("Please set the target score to win the game.")
+                    TextField(
+                        value = inputText,
+                        onValueChange = {
+                            // Only allow numeric input
+                            if (it.isDigitsOnly()) {
+                                inputText = it
+                            }
+                        },
+                        label = { Text("Target Score") },
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        targetScore = inputText.toIntOrNull() ?: 101  // Default to 101 if input is invalid
+                        openDialog.value = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
 
     Image(
         painter = painterResource(id = R.drawable.screen2_bg),
@@ -200,57 +236,37 @@ fun GameScreen(onHomeClick: () -> Unit) {
                     )
                 }
             }
+
             Column {
+                Column(
+                    modifier = Modifier.padding(end = 20.dp)
+                ) {
+                    Text("Target Score: $targetScore", color = Color.White)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                    Image(
+                        modifier = Modifier
+                            .size(30.dp),
+                        painter = painterResource(R.drawable.user),
+                        contentDescription = "User Icon"
+                    )
+                    Spacer(modifier = Modifier.width(30.dp))
+                    Column(
+                        modifier = Modifier.width(50.dp)
                     ) {
                         Text(
-                            "Set Target Score:",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "$userScore",
+                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
                             color = Color.White
                         )
-                        TextField(
-                            value = inputText,
-                            onValueChange = { newValue ->
-                                inputText = newValue
-                                targetScore =
-                                    newValue.toIntOrNull()
-                                        ?: 101 // Default to 101 if input is invalid
-                            },
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                            modifier = Modifier
-                                .width(80.dp)
-                                .height(20.dp)
-                                .padding(bottom = 10.dp)
-                        )
                     }
-                    Row {
-                        Image(
-                            modifier = Modifier
-                                .size(30.dp),
-                            painter = painterResource(R.drawable.user),
-                            contentDescription = "User Icon"
-                        )
-                        Spacer(modifier = Modifier.width(30.dp))
-                        Column(
-                            modifier = Modifier.width(50.dp)
-                        ) {
-                            Text(
-                                text = "$userScore",
-                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-                                color = Color.White
-                            )
-                        }
 
-                    }
                 }
-
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
