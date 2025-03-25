@@ -366,7 +366,7 @@ fun GameScreen(
             ) {
                 Text(
                     text = when {
-                        showDiceThrow -> "Rolling.."
+                        showDiceThrow -> "Rolling.." // Show "Rolling..." while dice are being thrown
                         rollCount == 0 -> "Throw"
                         else -> "ReRoll"
                     },
@@ -577,14 +577,15 @@ fun GameScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
+                .padding(top = 12.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // Target Score & Wins
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(),
+                    .fillMaxHeight()
+                    .padding(start = 20.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
@@ -689,6 +690,41 @@ fun GameScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 playerInfo(computerScore, R.drawable.computer)
             }
+        }
+        if (!gameOver) {
+            BackHandler {
+                showQuitDialog = true
+            }
+        }
+
+        if (showQuitDialog) {
+            QuitDialogBox(onQuit = {
+                showQuitDialog = false
+                onHomeClick()
+            }, onContinue = {
+                showQuitDialog = false
+            })
+        }
+
+        if (gameOver) {
+            AlertDialog(onDismissRequest = {},
+                confirmButton = {
+                    BackHandler {
+                        onHomeClick()
+                    }
+                }, title = {
+                    Text(
+                        text = winner,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (winner == "You Win!") Color.Green else Color.Red
+                    )
+                }, text = {
+                    Text(
+                        "Game Over! Press the Back button to return to the Home Screen.",
+                        fontSize = 18.sp
+                    )
+                })
         }
     }
 }
