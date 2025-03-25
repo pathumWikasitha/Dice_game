@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var showHomeScreen by remember { mutableStateOf(true) }
+            var showHomeScreen by rememberSaveable { mutableStateOf(true) }
             DiceNewTheme {
                 MyApp(
                     showHomeScreen = showHomeScreen,
@@ -168,20 +168,20 @@ fun GameScreen(
     computerWins: Int,
     updateScores: (Int, Int) -> Unit
 ) {
-    var showDiesThrow by remember { mutableStateOf(false) }
-    var userDiceResults by remember { mutableStateOf(List(5) { 1 }) }
-    var computerDiceResults by remember { mutableStateOf(List(5) { 1 }) }
-    var targetScore by remember { mutableIntStateOf(101) }
-    var userScore by remember { mutableIntStateOf(0) }
-    var computerScore by remember { mutableIntStateOf(0) }
-    var rollCount by remember { mutableIntStateOf(0) }
-    var isScoreButtonEnabled by remember { mutableStateOf(false) }
-    var showQuitDialog by remember { mutableStateOf(false) }
-    var selectedDice by remember { mutableStateOf(List(5) { false }) }
-    var gameOver by remember { mutableStateOf(false) }
-    var winner by remember { mutableStateOf("") }
-    var inputText by remember { mutableStateOf(targetScore.toString()) }
-    val openDialog = remember { mutableStateOf(true) }
+    var showDiceThrow by rememberSaveable { mutableStateOf(false) }
+    var userDiceResults by rememberSaveable { mutableStateOf(List(5) { 1 }) }
+    var computerDiceResults by rememberSaveable { mutableStateOf(List(5) { 1 }) }
+    var targetScore by rememberSaveable { mutableIntStateOf(101) }
+    var userScore by rememberSaveable { mutableIntStateOf(0) }
+    var computerScore by rememberSaveable { mutableIntStateOf(0) }
+    var rollCount by rememberSaveable { mutableIntStateOf(0) }
+    var isScoreButtonEnabled by rememberSaveable { mutableStateOf(false) }
+    var showQuitDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedDice by rememberSaveable { mutableStateOf(List(5) { false }) }
+    var gameOver by rememberSaveable { mutableStateOf(false) }
+    var winner by rememberSaveable { mutableStateOf("") }
+    var inputText by rememberSaveable { mutableStateOf(targetScore.toString()) }
+    val openDialog = rememberSaveable { mutableStateOf(true) }
 
     if (openDialog.value) {
         AlertDialog(onDismissRequest = { openDialog.value = false },
@@ -237,39 +237,61 @@ fun GameScreen(
         ) {
             Column {
 
-                Button(
-                    onClick = { showQuitDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+//                Button(
+//                    onClick = { showQuitDialog = true },
+//                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+//                ) {
+//
+//                    Image(
+//                        modifier = Modifier.size(50.dp),
+//                        painter = painterResource(R.drawable.home),
+//                        contentDescription = "Home Button"
+//                    )
+//                }
+                Column(
+                    modifier = Modifier
+                        .width(150.dp)
+                        .padding(start = 20.dp)
                 ) {
-
-                    Image(
-                        modifier = Modifier.size(50.dp),
-                        painter = painterResource(R.drawable.home),
-                        contentDescription = "Home Button"
+                    Text(
+                        "Target : $targetScore",
+                        color = Color.White,
+                        style = TextStyle(fontSize = 22.sp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Column(
+                    modifier = Modifier.padding(start = 20.dp),
+                ) {
+                    Text(
+                        text = "H:${humanWins} / C:${computerWins}",
+                        color = Color.White,
+                        style = TextStyle(fontSize = 22.sp), fontWeight = FontWeight.Bold
                     )
                 }
             }
 
             Column {
-                Column(
-                    modifier = Modifier.width(100.dp).padding(end = 20.dp)
-                ) {
-                    Text("Target : $targetScore", color = Color.White, style = TextStyle(fontSize = 15.sp))
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Column(
-                    modifier = Modifier.padding(end = 20.dp),
-                ) {
-                    Text(
-                        text = "H:${humanWins} / C:${computerWins}",
-                        color = Color.White,
-                        style = TextStyle(fontSize = 15.sp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
+//                Column(
+//                    modifier = Modifier.width(100.dp).padding(end = 20.dp)
+//                ) {
+//                    Text("Target : $targetScore", color = Color.White, style = TextStyle(fontSize = 15.sp))
+//                }
+//                Spacer(modifier = Modifier.height(10.dp))
+//                Column(
+//                    modifier = Modifier.padding(end = 20.dp),
+//                ) {
+//                    Text(
+//                        text = "H:${humanWins} / C:${computerWins}",
+//                        color = Color.White,
+//                        style = TextStyle(fontSize = 15.sp)
+//                    )
+//                }
+//                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Image(
@@ -359,11 +381,11 @@ fun GameScreen(
                 .padding(bottom = 50.dp),
             contentAlignment = Alignment.Center,
         ) {
-            if (showDiesThrow) {
+            if (showDiceThrow) {
                 GifImageOnce(gifResId = R.drawable.dice_roll,
                     modifier = Modifier.size(200.dp),
                     onGifEnd = {
-                        showDiesThrow = false
+                        showDiceThrow = false
                         userDiceResults = userDiceResults.mapIndexed { index, oldValue ->
                             if (selectedDice[index]) oldValue else (1..6).random()
                         }
@@ -376,7 +398,8 @@ fun GameScreen(
                             rollCount = 0 // Reset roll count
 
                             // Computer turn
-                            computerDiceResults = computerTurn(computerScore = computerScore, humanScore = userScore)
+                            computerDiceResults =
+                                computerTurn(computerScore = computerScore, humanScore = userScore)
                             computerScore += computerDiceResults.sum()
                         }
 
@@ -446,12 +469,12 @@ fun GameScreen(
         ) {
             Button(
                 onClick = {
-                    if (rollCount < 3 && !gameOver && !showDiesThrow) {  // Prevent extra rolls and allow throw if both tied
-                        showDiesThrow = true
+                    if (rollCount < 3 && !gameOver && !showDiceThrow) {  // Prevent extra rolls and allow throw if both tied
+                        showDiceThrow = true
                         rollCount++
                     }
                 },
-                enabled = rollCount < 3 && !showDiesThrow && !gameOver, // Disable after 3 rolls
+                enabled = rollCount < 3 && !showDiceThrow && !gameOver, // Disable after 3 rolls
                 modifier = Modifier
                     .width(140.dp)
                     .height(55.dp),
@@ -459,7 +482,7 @@ fun GameScreen(
             ) {
                 Text(
                     text = when {
-                        showDiesThrow -> "Rolling.."
+                        showDiceThrow -> "Rolling.."
                         rollCount == 0 -> "Throw"
                         rollCount == 1 || rollCount == 2 -> "ReRoll"
                         else -> "Throw"
@@ -477,7 +500,8 @@ fun GameScreen(
 
                         // Make the computer use all remaining rolls
                         repeat(3 - rollCount) {
-                            computerDiceResults = computerTurn(computerScore = computerScore, humanScore = userScore)
+                            computerDiceResults =
+                                computerTurn(computerScore = computerScore, humanScore = userScore)
                         }
 
                         computerScore += computerDiceResults.sum()
@@ -491,7 +515,10 @@ fun GameScreen(
                             } else if (computerScore > userScore) {
                                 // Computer wins
                                 winner = "You Lose!"
-                                updateScores(humanWins, computerWins + 1) //update score of the computer
+                                updateScores(
+                                    humanWins,
+                                    computerWins + 1
+                                ) //update score of the computer
                                 gameOver = true
                             } else {
                                 // User wins
@@ -509,10 +536,10 @@ fun GameScreen(
                     .width(140.dp)
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
-                enabled = isScoreButtonEnabled && !showDiesThrow && rollCount > 0
+                enabled = isScoreButtonEnabled && !showDiceThrow && rollCount > 0
             ) {
                 Text(
-                    if (!showDiesThrow && rollCount > 0) "Score" else "",
+                    if (!showDiceThrow && rollCount > 0) "Score" else "",
                     color = Color.White,
                     style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
                 )
