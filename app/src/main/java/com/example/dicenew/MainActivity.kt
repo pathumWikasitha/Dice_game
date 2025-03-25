@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -866,6 +867,7 @@ fun GameScreen(
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
     if (openDialog.value) {
+        // Set Target Score
         AlertDialog(onDismissRequest = { openDialog.value = false },
             title = { Text("Set Target Score") },
             text = {
@@ -892,7 +894,7 @@ fun GameScreen(
                 }
             })
     }
-
+    // Background Image
     Image(
         painter = painterResource(id = if (isPortrait) R.drawable.screen2_bg else R.drawable.screen2_bg_landscape),
         contentDescription = "Game Screen",
@@ -905,12 +907,14 @@ fun GameScreen(
         rollCount++
     }
 
+    // Function to handle scoring logic
     fun handleScore() {
-        if (rollCount > 0) {
+        if (rollCount > 0) {  // Ensure the player has thrown at least once
             userScore += userDiceResults.sum()
             isScoreButtonEnabled = false
             selectedDice = List(5) { false }
 
+            // Make the computer use all remaining rolls
             repeat(3 - rollCount) {
                 computerDiceResults = computerTurn(computerScore, userScore)
             }
@@ -920,17 +924,20 @@ fun GameScreen(
 
             if (computerScore >= targetScore || userScore >= targetScore) {
                 when {
+                    // Tie condition: Both players have scored the same and targetScore or more
                     computerScore == userScore -> {
                         winner = "Tie! Keep Rolling..."
                         gameOver = false
                     }
 
+                   // If Computer wins
                     computerScore > userScore -> {
                         winner = "You Lose!"
                         updateScores(humanWins, computerWins + 1)
                         gameOver = true
                     }
 
+                    // If User wins
                     else -> {
                         winner = "You Win!"
                         updateScores(humanWins + 1, computerWins)
@@ -944,6 +951,7 @@ fun GameScreen(
         }
     }
 
+    // Reusable function for dice row
     @Composable
     fun diceRow(diceResults: List<Int>, onDiceClick: ((Int) -> Unit)? = null, selectedDice: List<Boolean>? = null) {
         Row(
@@ -967,7 +975,7 @@ fun GameScreen(
                     clickModifier.border(
                         width = if (isPortrait) 3.dp else 2.dp,
                         color = if (selectedDice[index]) Color(0xFF00BFFF) else Color.Transparent,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(if (isPortrait) 8.dp else 6.dp)
+                        shape = RoundedCornerShape(if (isPortrait) 8.dp else 6.dp)
                     )
                 } else {
                     clickModifier
@@ -984,6 +992,7 @@ fun GameScreen(
         }
     }
 
+    // Reusable function for player info
     @Composable
     fun playerInfo(score: Int, iconResId: Int) {
         Row(verticalAlignment = Alignment.CenterVertically,
@@ -1003,6 +1012,7 @@ fun GameScreen(
         }
     }
 
+    // Reusable function for game buttons
     @Composable
     fun gameButtons() {
         Row(
@@ -1045,6 +1055,7 @@ fun GameScreen(
             }
         }
     }
+    // Portrait Layout
     if (isPortrait) {
         Column(
             modifier = Modifier
@@ -1095,6 +1106,7 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // COMPUTER DICE SECTION
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopStart,
@@ -1112,6 +1124,7 @@ fun GameScreen(
             }
             Spacer(modifier = Modifier.height(40.dp))
 
+            // DICE ANIMATION SECTION
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1148,6 +1161,7 @@ fun GameScreen(
             }
             Spacer(modifier = Modifier.height(60.dp))
 
+            // USER DICE SECTION
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1175,6 +1189,7 @@ fun GameScreen(
                 }
             }
 
+            // BUTTON SECTION
             gameButtons()
 
             if (showQuitDialog) {
@@ -1206,6 +1221,7 @@ fun GameScreen(
                         )
                     })
             } else {
+                // Prevent re-roll for the computer during the tie
                 if (computerScore != userScore || userScore < targetScore) {
                     BackHandler {
                         showQuitDialog = true
@@ -1214,12 +1230,14 @@ fun GameScreen(
             }
         }
     } else {
+        // Landscape Layout
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            // Target Score & Wins
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -1241,6 +1259,7 @@ fun GameScreen(
                 )
             }
 
+            // Computer Dice, Animation, and User Dice
             Column(
                 modifier = Modifier
                     .weight(1.5f)
@@ -1281,6 +1300,7 @@ fun GameScreen(
                                     isScoreButtonEnabled = false
                                     rollCount = 0
 
+                                    // Computer turn
                                     computerDiceResults = computerTurn(computerScore, userScore)
                                     computerScore += computerDiceResults.sum()
                                 }
