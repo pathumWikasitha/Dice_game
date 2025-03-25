@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -226,22 +227,22 @@ fun GameScreen(
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxSize()
     )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(
+    if (isPortrait) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+                .fillMaxSize()
+                .padding(top = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column {
 
 //                Button(
 //                    onClick = { showQuitDialog = true },
@@ -254,31 +255,31 @@ fun GameScreen(
 //                        contentDescription = "Home Button"
 //                    )
 //                }
-                Column(
-                    modifier = Modifier
-                        .width(150.dp)
-                        .padding(start = 20.dp)
-                ) {
-                    Text(
-                        "Target : $targetScore",
-                        color = Color.White,
-                        style = TextStyle(fontSize = 22.sp),
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column(
+                        modifier = Modifier
+                            .width(150.dp)
+                            .padding(start = 20.dp)
+                    ) {
+                        Text(
+                            "Target : $targetScore",
+                            color = Color.White,
+                            style = TextStyle(fontSize = 22.sp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Column(
+                        modifier = Modifier.padding(start = 20.dp),
+                    ) {
+                        Text(
+                            text = "H:${humanWins} / C:${computerWins}",
+                            color = Color.White,
+                            style = TextStyle(fontSize = 22.sp), fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
-                Column(
-                    modifier = Modifier.padding(start = 20.dp),
-                ) {
-                    Text(
-                        text = "H:${humanWins} / C:${computerWins}",
-                        color = Color.White,
-                        style = TextStyle(fontSize = 22.sp), fontWeight = FontWeight.Bold
-                    )
-                }
-            }
 
-            Column {
+                Column {
 //                Column(
 //                    modifier = Modifier.width(100.dp).padding(end = 20.dp)
 //                ) {
@@ -296,159 +297,79 @@ fun GameScreen(
 //                }
 //                Spacer(modifier = Modifier.height(10.dp))
 
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Image(
-                        modifier = Modifier.size(28.dp),
-                        painter = painterResource(R.drawable.user),
-                        contentDescription = "User Icon"
-                    )
-                    Spacer(modifier = Modifier.width(30.dp))
-                    Column(
-                        modifier = Modifier.width(50.dp)
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(
-                            text = "$userScore",
-                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-                            color = Color.White
-                        )
-                    }
-
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Image(
-                        modifier = Modifier.size(28.dp),
-                        painter = painterResource(R.drawable.computer),
-                        contentDescription = "Computer Icon"
-                    )
-                    Spacer(modifier = Modifier.width(30.dp))
-                    Column(
-                        modifier = Modifier.width(50.dp)
-                    ) {
-                        Text(
-                            text = "$computerScore",
-                            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-                            color = Color.White
-                        )
-                    }
-
-                }
-
-            }
-
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // COMPUTER DICE SECTION
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-            , contentAlignment = Alignment.TopEnd
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "COMPUTER",
-                    fontSize = 25.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    computerDiceResults.forEach { diceValue ->
                         Image(
-                            painter = painterResource(id = getDiceDrawable(diceValue)),
-                            contentDescription = "Dice $diceValue",
-                            modifier = Modifier.size(50.dp)
+                            modifier = Modifier.size(28.dp),
+                            painter = painterResource(R.drawable.user),
+                            contentDescription = "User Icon"
                         )
+                        Spacer(modifier = Modifier.width(30.dp))
+                        Column(
+                            modifier = Modifier.width(50.dp)
+                        ) {
+                            Text(
+                                text = "$userScore",
+                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                        }
+
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Image(
+                            modifier = Modifier.size(28.dp),
+                            painter = painterResource(R.drawable.computer),
+                            contentDescription = "Computer Icon"
+                        )
+                        Spacer(modifier = Modifier.width(30.dp))
+                        Column(
+                            modifier = Modifier.width(50.dp)
+                        ) {
+                            Text(
+                                text = "$computerScore",
+                                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                        }
+
+                    }
+
                 }
+
             }
-        }
-        Spacer(modifier = Modifier.height(40.dp))
 
-        // ANIMATION SECTION
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(180.dp)
-                .padding(bottom = 50.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (showDiceThrow) {
-                GifImageOnce(gifResId = R.drawable.dice_roll,
-                    modifier = Modifier.size(200.dp),
-                    onGifEnd = {
-                        showDiceThrow = false
-                        userDiceResults = userDiceResults.mapIndexed { index, oldValue ->
-                            if (selectedDice[index]) oldValue else (1..6).random()
-                        }
-                        isScoreButtonEnabled = true
-                        selectedDice = List(5) { false } // remove selection border after reRoll
+            Spacer(modifier = Modifier.height(20.dp))
 
-                        if (rollCount >= 3) {  // If the player reaches 3 rolls, score automatically
-                            userScore += userDiceResults.sum()
-                            isScoreButtonEnabled = false
-                            rollCount = 0 // Reset roll count
+            // COMPUTER DICE SECTION
 
-                            // Computer turn
-                            computerDiceResults =
-                                computerTurn(computerScore = computerScore, humanScore = userScore)
-                            computerScore += computerDiceResults.sum()
-                        }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.TopStart,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "COMPUTER",
+                        fontSize = 25.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                    })
-            }
-        }
-        Spacer(modifier = Modifier.height(60.dp))
-        // USER DICE SECTION
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(bottom = 100.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    userDiceResults.forEachIndexed { index, diceValue ->
-                        Box(modifier = Modifier
-                            .size(55.dp)
-                            .padding(4.dp)
-                            .clickable { // Allow dice select
-                                if (rollCount > 0) {
-                                    selectedDice = selectedDice
-                                        .toMutableList()
-                                        .apply {
-                                            this[index] = !this[index] // Toggle selection
-                                        }
-                                }
-                            }
-                            .border(
-                                width = 3.dp,
-                                color = if (selectedDice[index]) Color(0xFF00BFFF)
-                                else Color.Transparent,
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                            ), contentAlignment = Alignment.Center) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        computerDiceResults.forEach { diceValue ->
                             Image(
                                 painter = painterResource(id = getDiceDrawable(diceValue)),
                                 contentDescription = "Dice $diceValue",
@@ -456,142 +377,495 @@ fun GameScreen(
                             )
                         }
                     }
-
                 }
-                Text(
-                    text = "YOU",
-                    fontSize = 25.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                )
             }
-        }
+            Spacer(modifier = Modifier.height(40.dp))
 
-        // BUTTON SECTION
+            // ANIMATION SECTION
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .size(180.dp)
+                    .padding(bottom = 50.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (showDiceThrow) {
+                    GifImageOnce(gifResId = R.drawable.dice_roll,
+                        modifier = Modifier.size(200.dp),
+                        onGifEnd = {
+                            showDiceThrow = false
+                            userDiceResults = userDiceResults.mapIndexed { index, oldValue ->
+                                if (selectedDice[index]) oldValue else (1..6).random()
+                            }
+                            isScoreButtonEnabled = true
+                            selectedDice = List(5) { false } // remove selection border after reRoll
+
+                            if (rollCount >= 3) {  // If the player reaches 3 rolls, score automatically
+                                userScore += userDiceResults.sum()
+                                isScoreButtonEnabled = false
+                                rollCount = 0 // Reset roll count
+
+                                // Computer turn
+                                computerDiceResults =
+                                    computerTurn(
+                                        computerScore = computerScore,
+                                        humanScore = userScore
+                                    )
+                                computerScore += computerDiceResults.sum()
+                            }
+
+                        })
+                }
+            }
+            Spacer(modifier = Modifier.height(60.dp))
+            // USER DICE SECTION
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(bottom = 100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        userDiceResults.forEachIndexed { index, diceValue ->
+                            Box(modifier = Modifier
+                                .size(55.dp)
+                                .padding(4.dp)
+                                .clickable { // Allow dice select
+                                    if (rollCount > 0) {
+                                        selectedDice = selectedDice
+                                            .toMutableList()
+                                            .apply {
+                                                this[index] = !this[index] // Toggle selection
+                                            }
+                                    }
+                                }
+                                .border(
+                                    width = 3.dp,
+                                    color = if (selectedDice[index]) Color(0xFF00BFFF)
+                                    else Color.Transparent,
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                                        8.dp
+                                    )
+                                ), contentAlignment = Alignment.Center) {
+                                Image(
+                                    painter = painterResource(id = getDiceDrawable(diceValue)),
+                                    contentDescription = "Dice $diceValue",
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            }
+                        }
+
+                    }
+                    Text(
+                        text = "YOU",
+                        fontSize = 25.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            // BUTTON SECTION
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 50.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+
+            ) {
+                Button(
+                    onClick = {
+                        if (rollCount < 3 && !gameOver && !showDiceThrow) {  // Prevent extra rolls and allow throw if both tied
+                            showDiceThrow = true
+                            rollCount++
+                        }
+                    },
+                    enabled = rollCount < 3 && !showDiceThrow && !gameOver, // Disable after 3 rolls
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(55.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                ) {
+                    Text(
+                        text = when {
+                            showDiceThrow -> "Rolling.."
+                            rollCount == 0 -> "Throw"
+                            rollCount == 1 || rollCount == 2 -> "ReRoll"
+                            else -> "Throw"
+                        },
+                        color = Color.White,
+                        style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                    )
+                }
+                Button(
+                    onClick = {
+                        if (rollCount > 0) { // Ensure the player has thrown at least once
+                            userScore += userDiceResults.sum()
+                            isScoreButtonEnabled = false
+                            selectedDice = List(5) { false } // remove selection border after score
+
+                            // Make the computer use all remaining rolls
+                            repeat(3 - rollCount) {
+                                computerDiceResults =
+                                    computerTurn(
+                                        computerScore = computerScore,
+                                        humanScore = userScore
+                                    )
+                            }
+
+                            computerScore += computerDiceResults.sum()
+                            rollCount = 0 // Reset for next round
+
+                            if (computerScore >= targetScore || userScore >= targetScore) {
+                                if (computerScore == userScore) {
+                                    // Tie condition: Both players have scored the same and targetScore or more
+                                    winner = "Tie! Keep Rolling..."
+                                    gameOver = false // Allow user to continue rolling
+                                } else if (computerScore > userScore) {
+                                    // Computer wins
+                                    winner = "You Lose!"
+                                    updateScores(
+                                        humanWins,
+                                        computerWins + 1
+                                    ) //update score of the computer
+                                    gameOver = true
+                                } else {
+                                    // User wins
+                                    winner = "You Win!"
+                                    updateScores(
+                                        humanWins + 1,
+                                        computerWins
+                                    ) //update score of the user
+                                    gameOver = true
+                                }
+                            } else {
+                                winner = ""
+                                gameOver = false
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(55.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
+                    enabled = isScoreButtonEnabled && !showDiceThrow && rollCount > 0
+                ) {
+                    Text(
+                        if (!showDiceThrow && rollCount > 0) "Score" else "",
+                        color = Color.White,
+                        style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                    )
+                }
+            }
+            if (showQuitDialog) {
+                QuitDialogBox(onQuit = {
+                    showQuitDialog = false
+                    onHomeClick() // Go to home screen
+                }, onContinue = {
+                    showQuitDialog = false // Close the dialog
+                })
+            }
+
+            if (gameOver) {
+                AlertDialog(onDismissRequest = {},
+                    confirmButton = {
+                        BackHandler {
+                            onHomeClick()
+                        }
+                    }, title = {
+                        Text(
+                            text = winner,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (winner == "You Win!") Color.Green else Color.Red
+                        )
+                    }, text = {
+                        Text(
+                            "Game Over! Press the Back button to return to the Home Screen.",
+                            fontSize = 18.sp
+                        )
+                    })
+            } else {
+                // Prevent re-roll for the computer during the tie
+                if (computerScore != userScore || userScore < targetScore) {
+                    BackHandler {
+                        showQuitDialog = true
+                    }
+                }
+            }
+
+
+        }
+    } else {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 50.dp),
+                .fillMaxSize()
+                .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
-
         ) {
-            Button(
-                onClick = {
-                    if (rollCount < 3 && !gameOver && !showDiceThrow) {  // Prevent extra rolls and allow throw if both tied
-                        showDiceThrow = true
-                        rollCount++
-                    }
-                },
-                enabled = rollCount < 3 && !showDiceThrow && !gameOver, // Disable after 3 rolls
+            // Target Score & Wins
+            Column(
                 modifier = Modifier
-                    .width(140.dp)
-                    .height(55.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                    .weight(1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = when {
-                        showDiceThrow -> "Rolling.."
-                        rollCount == 0 -> "Throw"
-                        rollCount == 1 || rollCount == 2 -> "ReRoll"
-                        else -> "Throw"
-                    },
+                    "Target: $targetScore",
                     color = Color.White,
-                    style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                    style = TextStyle(fontSize = 18.sp),
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(15.dp))
+                Text(
+                    text = "H:$humanWins / C:$computerWins",
+                    color = Color.White,
+                    style = TextStyle(fontSize = 18.sp),
+                    fontWeight = FontWeight.Bold
                 )
             }
-            Button(
-                onClick = {
-                    if (rollCount > 0) { // Ensure the player has thrown at least once
-                        userScore += userDiceResults.sum()
-                        isScoreButtonEnabled = false
-                        selectedDice = List(5) { false } // remove selection border after score
 
-                        // Make the computer use all remaining rolls
-                        repeat(3 - rollCount) {
-                            computerDiceResults =
-                                computerTurn(computerScore = computerScore, humanScore = userScore)
-                        }
+            // Computer Dice, Animation, and User Dice
+            Column(
+                modifier = Modifier
+                    .weight(1.5f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // COMPUTER DICE
+                Text(
+                    text = "COMPUTER",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    computerDiceResults.forEach { diceValue ->
+                        Image(
+                            painter = painterResource(id = getDiceDrawable(diceValue)),
+                            contentDescription = "Dice $diceValue",
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
+                }
 
-                        computerScore += computerDiceResults.sum()
-                        rollCount = 0 // Reset for next round
+                Spacer(modifier = Modifier.height(10.dp))
 
-                        if (computerScore >= targetScore || userScore >= targetScore) {
-                            if (computerScore == userScore) {
-                                // Tie condition: Both players have scored the same and targetScore or more
-                                winner = "Tie! Keep Rolling..."
-                                gameOver = false // Allow user to continue rolling
-                            } else if (computerScore > userScore) {
-                                // Computer wins
-                                winner = "You Lose!"
-                                updateScores(
-                                    humanWins,
-                                    computerWins + 1
-                                ) //update score of the computer
-                                gameOver = true
-                            } else {
-                                // User wins
-                                winner = "You Win!"
-                                updateScores(humanWins + 1, computerWins) //update score of the user
-                                gameOver = true
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(bottom = 5.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (showDiceThrow) {
+                        GifImageOnce(
+                            gifResId = R.drawable.dice_roll,
+                            modifier = Modifier.size(100.dp),
+                            onGifEnd = {
+                                showDiceThrow = false
+                                userDiceResults = userDiceResults.mapIndexed { index, oldValue ->
+                                    if (selectedDice[index]) oldValue else (1..6).random()
+                                }
+                                isScoreButtonEnabled = true
+                                selectedDice = List(5) { false }
+
+                                if (rollCount >= 3) {
+                                    userScore += userDiceResults.sum()
+                                    isScoreButtonEnabled = false
+                                    rollCount = 0
+
+                                    // Computer turn
+                                    computerDiceResults = computerTurn(computerScore, userScore)
+                                    computerScore += computerDiceResults.sum()
+                                }
+                            })
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // USER DICE
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        userDiceResults.forEachIndexed { index, diceValue ->
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .padding(2.dp)
+                                    .clickable {
+                                        if (rollCount > 0) {
+                                            selectedDice = selectedDice
+                                                .toMutableList()
+                                                .apply {
+                                                    this[index] = !this[index]
+                                                }
+                                        }
+                                    }
+                                    .border(
+                                        width = 2.dp,
+                                        color = if (selectedDice[index]) Color(0xFF00BFFF) else Color.Transparent,
+                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                                            6.dp
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = getDiceDrawable(diceValue)),
+                                    contentDescription = "Dice $diceValue",
+                                    modifier = Modifier.size(45.dp)
+                                )
                             }
-                        } else {
-                            winner = ""
-                            gameOver = false
                         }
                     }
-                },
-                modifier = Modifier
-                    .width(140.dp)
-                    .height(55.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
-                enabled = isScoreButtonEnabled && !showDiceThrow && rollCount > 0
-            ) {
-                Text(
-                    if (!showDiceThrow && rollCount > 0) "Score" else "",
-                    color = Color.White,
-                    style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium)
-                )
-            }
-        }
-        if (showQuitDialog) {
-            QuitDialogBox(onQuit = {
-                showQuitDialog = false
-                onHomeClick() // Go to home screen
-            }, onContinue = {
-                showQuitDialog = false // Close the dialog
-            })
-        }
-
-        if (gameOver) {
-            AlertDialog(onDismissRequest = {},
-                confirmButton = {
-                    BackHandler {
-                        onHomeClick()
-                    }
-                }, title = {
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = winner,
-                        fontSize = 28.sp,
+                        text = "YOU",
+                        fontSize = 18.sp,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        color = if (winner == "You Win!") Color.Green else Color.Red
                     )
-                }, text = {
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = {
+                                if (rollCount < 3 && !gameOver && !showDiceThrow) {
+                                    showDiceThrow = true
+                                    rollCount++
+                                }
+                            },
+                            enabled = rollCount < 3 && !showDiceThrow && !gameOver,
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                        ) {
+                            Text(
+                                text = if (showDiceThrow) "Rolling.." else if (rollCount == 0) "Throw" else "ReRoll",
+                                color = Color.White,
+                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                if (rollCount > 0) {
+                                    userScore += userDiceResults.sum()
+                                    isScoreButtonEnabled = false
+                                    selectedDice = List(5) { false }
+
+                                    repeat(3 - rollCount) {
+                                        computerDiceResults = computerTurn(computerScore, userScore)
+                                    }
+
+                                    computerScore += computerDiceResults.sum()
+                                    rollCount = 0
+
+                                    if (computerScore >= targetScore || userScore >= targetScore) {
+                                        when {
+                                            computerScore == userScore -> {
+                                                winner = "Tie! Keep Rolling..."
+                                                gameOver = false
+                                            }
+
+                                            computerScore > userScore -> {
+                                                winner = "You Lose!"
+                                                updateScores(humanWins, computerWins + 1)
+                                                gameOver = true
+                                            }
+
+                                            else -> {
+                                                winner = "You Win!"
+                                                updateScores(humanWins + 1, computerWins)
+                                                gameOver = true
+                                            }
+                                        }
+                                    } else {
+                                        winner = ""
+                                        gameOver = false
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta),
+                            enabled = isScoreButtonEnabled && !showDiceThrow && rollCount > 0
+                        ) {
+                            Text(
+                                if (!showDiceThrow && rollCount > 0) "Score" else "",
+                                color = Color.White,
+                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // User & Computer Scores
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.End
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.user),
+                        contentDescription = "User Icon"
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
                     Text(
-                        "Game Over! Press the Back button to return to the Home Screen.",
-                        fontSize = 18.sp
+                        text = "$userScore",
+                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                        color = Color.White
                     )
-                })
-        } else {
-            // Prevent re-roll for the computer during the tie
-            if (computerScore != userScore || userScore < targetScore) {
-                BackHandler {
-                    showQuitDialog = true
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.computer),
+                        contentDescription = "Computer Icon"
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    Text(
+                        text = "$computerScore",
+                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                        color = Color.White
+                    )
                 }
             }
         }
-
-
     }
+
 }
 
 
