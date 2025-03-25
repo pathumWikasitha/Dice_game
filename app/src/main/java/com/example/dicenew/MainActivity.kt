@@ -29,8 +29,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -502,14 +504,14 @@ fun GameScreen(
                         })
                 }
             }
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // USER DICE SECTION
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(bottom = 100.dp),
+                    .padding(bottom = 60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -531,6 +533,7 @@ fun GameScreen(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(40.dp))
 
             // BUTTON SECTION
             gameButtons()
@@ -753,7 +756,10 @@ fun QuitDialogBox(onQuit: () -> Unit, onContinue: () -> Unit) {
 
 @Composable
 fun AboutDialogBox(onDismiss: () -> Unit) {
-    AlertDialog(onDismissRequest = onDismiss,
+    val scrollState = rememberScrollState() // Add scroll state
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Ok")
@@ -761,17 +767,20 @@ fun AboutDialogBox(onDismiss: () -> Unit) {
         },
         title = { Text("About the Author", fontSize = 22.sp, fontWeight = FontWeight.Bold) },
         text = {
-            Column {
+            Column(modifier = Modifier.verticalScroll(scrollState)) { // Make Column scrollable
                 Text("Name: Pathum Wikasitha", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 Text("Student ID: w1953264", fontSize = 18.sp, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "I confirm that I understand what plagiarism is and have read and understood " + "the section on Assessment Offences in the Essential Information for Students. " + "The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
+                    text = "I confirm that I understand what plagiarism is and have read and understood " +
+                            "the section on Assessment Offences in the Essential Information for Students. " +
+                            "The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal
                 )
             }
-        })
+        }
+    )
 }
 
 @SuppressLint("ResourceType")
