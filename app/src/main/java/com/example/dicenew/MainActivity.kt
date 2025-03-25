@@ -1,6 +1,7 @@
 package com.example.dicenew
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.graphics.ImageDecoder
 import android.graphics.drawable.Animatable2
 import android.graphics.drawable.AnimatedImageDrawable
@@ -47,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -107,28 +109,29 @@ fun MyApp(showHomeScreen: Boolean, onNewGameClick: () -> Unit, onBackToHome: () 
 
 @Composable
 fun HomeScreen(onNewGameClick: () -> Unit) {
+    // Detect device orientation
+    val configuration = LocalConfiguration.current
+    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
     var showAboutDialog by remember { mutableStateOf(false) }
 
     Image(
-        painter = painterResource(id = R.drawable.screen1_bg),
+        painter = painterResource(id = if (isPortrait) R.drawable.screen1_bg else R.drawable.screen1_landscape),
         contentDescription = "Home Screen",
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxSize()
     )
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(100.dp),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Bottom,
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-
         Button(
             onClick = { onNewGameClick() },
             modifier = Modifier
-                .width(170.dp)
-                .height(55.dp),
+                .width(if (isPortrait) 170.dp else 165.dp)
+                .height(if (isPortrait) 55.dp else 50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
         ) {
             Text(
@@ -143,8 +146,8 @@ fun HomeScreen(onNewGameClick: () -> Unit) {
         Button(
             onClick = { showAboutDialog = true },
             modifier = Modifier
-                .width(150.dp)
-                .height(55.dp),
+                .width(if (isPortrait) 170.dp else 165.dp)
+                .height(if (isPortrait) 55.dp else 50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Magenta)
         ) {
             Text(
@@ -153,14 +156,14 @@ fun HomeScreen(onNewGameClick: () -> Unit) {
                 style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold)
             )
         }
-
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = if (isPortrait) Modifier.height(140.dp) else Modifier.height(30.dp))
     }
 
     if (showAboutDialog) {
         AboutDialogBox(onDismiss = { showAboutDialog = false })
     }
 }
+
 
 @Composable
 fun GameScreen(
@@ -182,6 +185,9 @@ fun GameScreen(
     var winner by rememberSaveable { mutableStateOf("") }
     var inputText by rememberSaveable { mutableStateOf(targetScore.toString()) }
     val openDialog = rememberSaveable { mutableStateOf(true) }
+
+    val configuration = LocalConfiguration.current
+    val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
     if (openDialog.value) {
         AlertDialog(onDismissRequest = { openDialog.value = false },
@@ -215,7 +221,7 @@ fun GameScreen(
 
 
     Image(
-        painter = painterResource(id = R.drawable.screen2_bg),
+        painter = painterResource(id = if (isPortrait) R.drawable.screen2_bg else R.drawable.screen2_bg_landscape),
         contentDescription = "Game Screen",
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxSize()
@@ -346,7 +352,7 @@ fun GameScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f), contentAlignment = Alignment.TopEnd
+            , contentAlignment = Alignment.TopEnd
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -372,6 +378,7 @@ fun GameScreen(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(40.dp))
 
         // ANIMATION SECTION
         Box(
@@ -406,6 +413,7 @@ fun GameScreen(
                     })
             }
         }
+        Spacer(modifier = Modifier.height(60.dp))
         // USER DICE SECTION
         Box(
             modifier = Modifier
